@@ -11,7 +11,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "puppeteer": "^22.0.0",
+    "puppeteer": "^23.3.0",
     "better-sqlite3": "^9.0.0",
     "nodemailer": "^6.9.0"
   }
