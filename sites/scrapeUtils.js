@@ -7,7 +7,7 @@ async function waitForAnySelector(page, selectors, timeoutMs = 15000) {
       if (handle) return sel;
     }
     // eslint-disable-next-line no-await-in-loop
-    await page.waitForTimeout(250);
+    await new Promise(r => setTimeout(r, 250));
   }
   throw new Error(`Timeout waiting for selectors: ${selectors.join(", ")}`);
 }

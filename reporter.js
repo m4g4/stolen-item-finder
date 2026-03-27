@@ -1,7 +1,18 @@
 const fs = require("fs");
 const path = require("path");
 
+const REPORT_DIR = "./report";
+
 function generateHtmlReport(listings, outputPath) {
+  if (!fs.existsSync(REPORT_DIR)) {
+    fs.mkdirSync(REPORT_DIR, { recursive: true });
+  }
+
+  const now = new Date();
+  const timestamp = now.toISOString().replace(/[:.]/g, "-").slice(0, 19);
+  const filename = `report-${timestamp}.html`;
+  const reportPath = path.join(REPORT_DIR, filename);
+
   const itemsHtml = listings.map(item => `
     <div class="item">
       ${item.image ? `<img src="${item.image}" alt="${item.title}" onerror="this.style.display='none'">` : ""}
@@ -52,8 +63,55 @@ function generateHtmlReport(listings, outputPath) {
 </body>
 </html>`;
 
-  fs.writeFileSync(outputPath, html);
-  console.log(`\nHTML report saved to: ${outputPath}`);
+  fs.writeFileSync(reportPath, html);
+  console.log(`\nHTML report saved to: ${reportPath}`);
+
+  updateIndex();
 }
 
-module.exports = { generateHtmlReport };
+function updateIndex() {
+  const files = fs.readdirSync(REPORT_DIR)
+    .filter(f => f.endsWith(".html") && f !== "index.html")
+    .sort()
+    .reverse();
+
+  const linksHtml = files.map(f => {
+    const stat = fs.statSync(path.join(REPORT_DIR, f));
+    const date = stat.mtime.toLocaleString();
+    return `<li><a href="${f}">${f}</a> - ${date}</li>`;
+  }).join("\n");
+
+  const indexHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Reports Index</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
+    h1 { color: #333; }
+    ul { list-style: none; padding: 0; }
+    li { background: white; padding: 10px; margin-bottom: 8px; border-radius: 4px; }
+    a { color: #0066cc; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <h1>📋 Reports Index</h1>
+  <ul>
+    ${linksHtml}
+  </ul>
+</body>
+</html>`;
+
+  fs.writeFileSync(path.join(REPORT_DIR, "index.html"), indexHtml);
+  console.log(`Index updated: ${REPORT_DIR}/index.html`);
+}
+
+function ensureReportDir() {
+  if (!fs.existsSync(REPORT_DIR)) {
+    fs.mkdirSync(REPORT_DIR, { recursive: true });
+  }
+  updateIndex();
+}
+
+module.exports = { generateHtmlReport, ensureReportDir };

@@ -2,7 +2,7 @@ const puppeteer = require("puppeteer");
 const config = require("./config");
 const db = require("./db");
 const { sendEmailAlert } = require("./notifier");
-const { generateHtmlReport } = require("./reporter");
+const { generateHtmlReport, ensureReportDir } = require("./reporter");
 
 const { scrapeBazos } = require("./sites/bazos");
 const { scrapeWillhaben } = require("./sites/willhaben");
@@ -64,6 +64,10 @@ async function run() {
       if (handler) {
         await handler(queries);
       }
+    }
+
+    if (config.htmlReport !== false) {
+      ensureReportDir();
     }
 
     if (allNewListings.length > 0 && config.htmlReport !== false) {

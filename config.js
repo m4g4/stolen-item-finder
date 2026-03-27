@@ -5,41 +5,33 @@ module.exports = {
   },
 
   htmlReport: true,
-  htmlReportPath: "./report.html",
+  htmlReportPath: "./report/",
 
   searchTerms: {
     willhaben_at: [
-      "Ghost Keto",
-      "Ghost Keto dunkelgrün",
-      "Ghost Keto Mountainbike",
-      "Ghost Keto Fully",
-      "Ghost"
+      "Ghost Kato",
+      "Ghost Kato dunkelgrün",
+      "Ghost Kato Mountainbike"
     ],
     bazos_sk: [
-      "Ghost Keto",
-      "Ghost Keto horský bicykel",
-      "Ghost"
+      "Ghost Kato",
+      "Ghost Kato horský bicykel"
     ],
     bazos_cz: [
-      "Ghost Keto",
-      "Ghost Keto horské kolo",
-      "Ghost"
+      "Ghost Kato",
+      "Ghost Kato horské kolo"
     ],
     jofogas_hu: [
-      "Ghost Keto",
-      "Ghost Keto kerékpár",
-      "Ghost Keto sötétzöld",
-      "Ghost"
+      "Ghost Kato",
+      "Ghost Kato kerékpár",
+      "Ghost Kato sötétzöld"
     ],
     olx_sk: [
-      "Ghost Keto",
-      "Ghost Keto bicykel",
-      "Ghost"
+      "Ghost Kato",
+      "Ghost Kato bicykel"
     ],
     olx_pl: [
-      "Ghost Keto",
-      "Ghost Keto rower",
-      "Ghost"
+      "Ghost Kato"
     ]
   },
 
@@ -47,7 +39,7 @@ module.exports = {
     bazos_sk: true,
     bazos_cz: true,
     willhaben_at: true,
-    olx_sk: true,
+    olx_sk: false,
     olx_pl: true,
     jofogas_hu: true
   }
