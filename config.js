@@ -4,6 +4,14 @@ module.exports = {
     to: "martin.gabor.sk@gmail.com"
   },
 
+  lftp: {
+    enabled: false,
+    host: "your-server.com",
+    user: "user",
+    password: "password",
+    path: "/var/www/html/report"
+  },
+
   htmlReport: true,
   htmlReportPath: "./report/",
 

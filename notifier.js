@@ -1,16 +1,21 @@
 const { spawnSync } = require("child_process");
 const config = require("./config");
 
-async function sendEmailAlert(listing) {
-  if (!config.email?.enabled || !config.email?.to) return;
+async function sendEmailAlert(listing) {}
 
-  const subject = `[Stolen Bike] ${listing.title} - ${listing.price}`;
+async function sendSummaryEmail(listings, reportUrl) {
+  if (!config.email?.enabled || !config.email?.to) return;
+  if (listings.length === 0) return;
+
+  const itemsSummary = listings.map(item =>
+    `- ${item.title} (${item.price}) - ${item.url}`
+  ).join("\n");
+
+  const subject = `[Stolen Bike] Found ${listings.length} new listings`;
   const body =
-    `Possible match found!\n\n` +
-    `Site: ${listing.site}\n` +
-    `Title: ${listing.title}\n` +
-    `Price: ${listing.price}\n` +
-    `Link: ${listing.url}`;
+    `Found ${listings.length} possible matches!\n\n` +
+    `${itemsSummary}\n\n` +
+    `Full report: ${reportUrl}`;
 
   const emailContent = `To: ${config.email.to}
 Subject: ${subject}
@@ -26,10 +31,10 @@ ${body}`;
     if (result.status !== 0) {
       throw new Error(`msmtp exited with code ${result.status}`);
     }
-    console.log(`Email sent: ${subject}`);
+    console.log(`Summary email sent with ${listings.length} listings`);
   } catch (err) {
     console.error("Failed to send email:", err.message);
   }
 }
 
-module.exports = { sendEmailAlert };
+module.exports = { sendEmailAlert, sendSummaryEmail };

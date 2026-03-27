@@ -1,7 +1,8 @@
 const puppeteer = require("puppeteer");
+const { spawnSync } = require("child_process");
 const config = require("./config");
 const db = require("./db");
-const { sendEmailAlert } = require("./notifier");
+const { sendSummaryEmail } = require("./notifier");
 const { generateHtmlReport, ensureReportDir } = require("./reporter");
 
 const { scrapeBazos } = require("./sites/bazos");
@@ -71,8 +72,18 @@ async function run() {
     }
 
     if (allNewListings.length > 0 && config.htmlReport !== false) {
-      const reportPath = config.htmlReportPath || "./report.html";
-      generateHtmlReport(allNewListings, reportPath);
+      generateHtmlReport(allNewListings, config.htmlReportPath);
+    }
+
+    if (allNewListings.length > 0 && config.lftp?.enabled) {
+      copyReportViaLftp();
+    }
+
+    if (allNewListings.length > 0) {
+      const reportUrl = config.lftp?.enabled
+        ? `https://${config.lftp.host}${config.lftp.path}/index.html`
+        : `./report/index.html`;
+      await sendSummaryEmail(allNewListings, reportUrl);
     }
   } finally {
     await browser.close();
@@ -88,8 +99,25 @@ async function handleResults(results, query) {
       console.log("NEW:", listing.title, listing.price, listing.url);
       await db.saveListing(listing);
       allNewListings.push(listing);
-      await sendEmailAlert(listing);
     }
+  }
+}
+
+function copyReportViaLftp() {
+  const { lftp } = config;
+
+  const lftpCommands = `mirror -R --delete "./report" "${lftp.path}"
+quit`;
+
+  try {
+    spawnSync("lftp", [
+      "-u", `${lftp.user},${lftp.password}`,
+      `sftp://${lftp.host}`,
+      "-e", lftpCommands
+    ], { stdio: "inherit" });
+    console.log(`Report synced to ${lftp.host}`);
+  } catch (err) {
+    console.error("Failed to sync report via lftp:", err.message);
   }
 }
 
