@@ -81,7 +81,7 @@ async function run() {
 
     if (allNewListings.length > 0) {
       const reportUrl = config.lftp?.enabled
-        ? `https://${config.lftp.host}${config.lftp.path}/index.html`
+        ? `https://${config.lftp.host}/snapshot_testing/${config.lftp.path}/index.html`
         : `./report/index.html`;
       await sendSummaryEmail(allNewListings, reportUrl);
     }
