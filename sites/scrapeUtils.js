@@ -68,6 +68,9 @@ async function extractListings(page, selectors) {
       if (image && image.startsWith("//")) {
         image = `${window.location.protocol}${image}`;
       }
+      if (image && image.includes("/no_thumbnail.")) {
+        image = "";
+      }
       image = toAbsoluteUrl(image);
 
       const id = link;

@@ -16,7 +16,7 @@ const scrapeOlx = async (page, countryDomain, query) => {
     ],
     link: ["div[data-testid='ad-card-title'] a", "a[href]"],
     price: ["p[data-testid='ad-price']", "[data-testid='ad-price']"],
-    image: ["img"],
+    image: ["[data-testid='l-card'] > div > div[type='list'] > div[type='list'] > a img"],
     date: ["p[data-testid='location-date']"]
   };
 
