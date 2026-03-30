@@ -1,5 +1,12 @@
 const { waitForAnySelector, extractListings } = require("./scrapeUtils");
 
+const scrollToLoadImages = async (page) => {
+  await page.evaluate(() => {
+    window.scrollTo(0, document.body.scrollHeight);
+  });
+  await new Promise(r => setTimeout(r, 1000));
+};
+
 const scrapeOlx = async (page, countryDomain, query) => {
   const site = `olx.${countryDomain}`;
   const slug = encodeURIComponent(query.trim()).replace(/%20/g, "-");
@@ -31,6 +38,7 @@ const scrapeOlx = async (page, countryDomain, query) => {
 
     try {
       await waitForAnySelector(page, selectors.row, 15000);
+      await scrollToLoadImages(page);
     } catch (err) {
       console.warn(`[${site}] No results found on page ${currentPage}: ${err.message}`);
       break;
