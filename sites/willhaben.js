@@ -2,42 +2,69 @@ const { waitForAnySelector } = require("./scrapeUtils");
 
 const scrapeWillhaben = async (page, query) => {
   const site = "willhaben.at";
-  const url = new URL(
+  const baseUrl = new URL(
     "https://www.willhaben.at/iad/kaufen-und-verkaufen/marktplatz"
   );
-  url.searchParams.set("keyword", query);
+  baseUrl.searchParams.set("keyword", query);
 
-  await page.goto(url.toString(), { waitUntil: "domcontentloaded" });
+  const selectors = {
+    row: '[data-testid="search-result-entry-header"]',
+    nextPage: ["[data-testid='pagination-top-next-button']"]
+  };
 
-  try {
-    await waitForAnySelector(page, ["script#__NEXT_DATA__"], 15000);
-  } catch (err) {
-    console.warn(`[${site}] No results found for "${query}": ${err.message}`);
-    return [];
+  const extractResults = async () => {
+    return page.evaluate(() => {
+      const rows = document.querySelectorAll('[data-testid="search-result-entry-header"]');
+      return Array.from(rows).map(row => {
+        const titleEl = row.querySelector("h3");
+        const title = titleEl ? titleEl.textContent.trim() : "";
+        const linkEl = row.querySelector("a[href]");
+        const url = linkEl ? (linkEl.href || "") : "";
+        const priceEl = row.querySelector('[data-testid*="price"]');
+        const price = priceEl ? priceEl.textContent.trim() : "N/A";
+        const dateEl = row.querySelector('p[aria-label^="veröffentlicht"]');
+        const dateText = dateEl ? dateEl.textContent.trim() : null;
+        const imageEl = row.querySelector("img");
+        const image = imageEl ? imageEl.src : null;
+
+        return { title, price, url, id: url, image, date: dateText };
+      }).filter(item => item.title && item.url);
+    });
+  };
+
+  const allResults = [];
+  let currentPage = 1;
+  let hasNextPage = true;
+
+  while (hasNextPage) {
+    const url = currentPage === 1 
+      ? baseUrl.toString() 
+      : `${baseUrl.toString()}&page=${currentPage}`;
+    console.log(`[${site}] Scraping page ${currentPage}: ${url}`);
+
+    await page.goto(url, { waitUntil: "domcontentloaded" });
+
+    try {
+      await waitForAnySelector(page, [selectors.row], 15000);
+    } catch (err) {
+      console.warn(`[${site}] No results found on page ${currentPage}: ${err.message}`);
+      break;
+    }
+
+    const results = await extractResults();
+    allResults.push(...results.map((r) => ({
+      ...r,
+      site
+    })));
+
+    const nextPageEl = await page.$(selectors.nextPage.join(","));
+    hasNextPage = !!nextPageEl;
+    currentPage++;
   }
 
-  const results = await page.evaluate(() => {
-    const rows = document.querySelectorAll('[data-testid="search-result-entry-header"]');
-    return Array.from(rows).map(row => {
-      const titleEl = row.querySelector("h3");
-      const title = titleEl ? titleEl.textContent.trim() : "";
-      const linkEl = row.querySelector("a[href]");
-      const url = linkEl ? (linkEl.href || "") : "";
-      const priceEl = row.querySelector('[data-testid*="price"]');
-      const price = priceEl ? priceEl.textContent.trim() : "N/A";
-      const dateEl = row.querySelector('p[aria-label^="veröffentlicht"]');
-      const dateText = dateEl ? dateEl.textContent.trim() : null;
-      const imageEl = row.querySelector("img");
-      const image = imageEl ? imageEl.src : null;
+  console.log(`[${site}] Total results: ${allResults.length}`);
 
-      return { title, price, url, id: url, image, date: dateText };
-    }).filter(item => item.title && item.url);
-  });
-
-  return results.map((r) => ({
-    ...r,
-    site
-  }));
+  return allResults;
 };
 
 module.exports = { scrapeWillhaben };

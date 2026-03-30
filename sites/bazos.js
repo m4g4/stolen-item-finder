@@ -3,7 +3,7 @@ const { waitForAnySelector, extractListings } = require("./scrapeUtils");
 const scrapeBazos = async (page, countryDomain, query) => {
   const site = `bazos.${countryDomain}`;
   const submitLabel = countryDomain === "cz" ? "Hledat" : "Hľadať";
-  const params = new URLSearchParams({
+  const baseParams = new URLSearchParams({
     hledat: query,
     rubriky: "www",
     hlokalita: "",
@@ -14,9 +14,7 @@ const scrapeBazos = async (page, countryDomain, query) => {
     order: "",
     kitx: "ano"
   });
-  const url = `https://www.bazos.${countryDomain}/search.php?${params.toString()}`;
-
-  await page.goto(url, { waitUntil: "domcontentloaded" });
+  let baseUrl = `https://www.bazos.${countryDomain}/search.php?${baseParams.toString()}`;
 
   const selectors = {
     row: [".inzeraty.inzeratyflex"],
@@ -24,22 +22,49 @@ const scrapeBazos = async (page, countryDomain, query) => {
     link: ["h2.nadpis a", "h2 a"],
     price: [".inzeratycena span", ".inzeratycena"],
     image: ["img.obrazek", ".inzeratynadpis img"],
-    date: ["span.velikost10"]
+    date: ["span.velikost10"],
+    nextPage: ["div.strankovani a[rel='nofollow']"]
   };
 
-  try {
-    await waitForAnySelector(page, selectors.row, 15000);
-  } catch (err) {
-    console.warn(`[${site}] No results found for "${query}": ${err.message}`);
-    return [];
+  const allResults = [];
+  let currentPage = 1;
+  let hasNextPage = true;
+
+  while (hasNextPage) {
+    console.log(`[${site}] Scraping page ${currentPage}: ${baseUrl}`);
+
+    await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+
+    try {
+      await waitForAnySelector(page, selectors.row, 15000);
+    } catch (err) {
+      console.warn(`[${site}] No results found on page ${currentPage}: ${err.message}`);
+      break;
+    }
+
+    const results = await extractListings(page, selectors);
+    allResults.push(...results.map((r) => ({
+      ...r,
+      site
+    })));
+
+    const nextPageEl = await page.$(selectors.nextPage.join(","));
+    if (nextPageEl) {
+      const nextHref = await page.evaluate(el => el.href, nextPageEl);
+      if (nextHref && nextHref.includes("bazos.")) {
+        baseUrl = nextHref;
+      } else {
+        hasNextPage = false;
+      }
+    } else {
+      hasNextPage = false;
+    }
+    currentPage++;
   }
 
-  const results = await extractListings(page, selectors);
+  console.log(`[${site}] Total results: ${allResults.length}`);
 
-  return results.map((r) => ({
-    ...r,
-    site
-  }));
+  return allResults;
 };
 
 module.exports = { scrapeBazos };
