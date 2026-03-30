@@ -38,7 +38,8 @@ const scrapeJofogas = async (page, query) => {
         price: ad?.price?.label || "N/A",
         url: ad?.url || "",
         id: ad?.url || "",
-        image
+        image,
+        date: ad?.createdAt ? new Date(ad.createdAt).toLocaleDateString() : null
       };
     }).filter((item) => item.title && item.url);
   });

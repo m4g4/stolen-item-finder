@@ -23,7 +23,8 @@ const scrapeBazos = async (page, countryDomain, query) => {
     title: ["h2.nadpis a", "h2 a"],
     link: ["h2.nadpis a", "h2 a"],
     price: [".inzeratycena span", ".inzeratycena"],
-    image: ["img.obrazek", ".inzeratynadpis img"]
+    image: ["img.obrazek", ".inzeratynadpis img"],
+    date: ["span.velikost10"]
   };
 
   try {

@@ -54,10 +54,15 @@ async function extractListings(page, selectors) {
       const linkEl = pick(row, selectorsArg.link || selectorsArg.title);
       const priceEl = pick(row, selectorsArg.price || []);
       const imgEl = pick(row, selectorsArg.image || []);
+      const dateEl = pick(row, selectorsArg.date || []);
 
       const title = getText(titleEl);
       const link = toAbsoluteUrl(linkEl ? linkEl.getAttribute("href") : "");
       const price = getText(priceEl) || "N/A";
+      let date = getText(dateEl) || null;
+      if (date) {
+        date = date.replace(/\[|\]/g, "").trim();
+      }
 
       let image = getAttr(imgEl, ["data-src", "data-lazy", "src"]);
       if (image && image.startsWith("//")) {
@@ -72,7 +77,8 @@ async function extractListings(page, selectors) {
         price,
         url: link,
         id,
-        image: image || null
+        image: image || null,
+        date
       };
     });
 

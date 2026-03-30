@@ -16,10 +16,13 @@ function generateHtmlReport(listings, outputPath) {
   const itemsHtml = listings.map(item => `
     <div class="item">
       ${item.image ? `<img src="${item.image}" alt="${item.title}" onerror="this.style.display='none'">` : ""}
-      <h3><a href="${item.url}" target="_blank">${item.title}</a></h3>
-      <p class="price">${item.price}</p>
-      <p class="site">${item.site}</p>
-      <p class="query">Search: ${item.query}</p>
+      <div class="content">
+        <h3><a href="${item.url}" target="_blank">${item.title}</a></h3>
+        <p class="price">${item.price}</p>
+        <p class="site">${item.site}</p>
+        ${item.date ? `<p class="date">Added: ${item.date}</p>` : ""}
+        <p class="query">Search: ${item.query}</p>
+      </div>
     </div>
   `).join("\n");
 
@@ -47,11 +50,13 @@ function generateHtmlReport(listings, outputPath) {
       object-fit: cover; 
       border-radius: 4px;
     }
+    .item .content { flex: 1; }
     .item h3 { margin: 0 0 5px 0; }
     .item h3 a { color: #0066cc; text-decoration: none; }
     .item h3 a:hover { text-decoration: underline; }
     .price { font-weight: bold; color: #2a9d8f; margin: 5px 0; font-size: 1.1em; }
     .site { color: #666; font-size: 0.9em; margin: 3px 0; }
+    .date { color: #e76f51; font-size: 0.9em; margin: 3px 0; font-weight: 500; }
     .query { color: #888; font-size: 0.8em; margin: 3px 0; }
     .count { color: #666; margin-bottom: 20px; }
   </style>
