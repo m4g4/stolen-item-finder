@@ -1,4 +1,23 @@
 async function waitForAnySelector(page, selectors, timeoutMs = 15000) {
+  if (selectors === undefined || selectors === null) {
+    throw new Error("waitForAnySelector: selectors is undefined/null");
+  }
+  
+  if (typeof selectors === "string") {
+    selectors = [selectors];
+  } else if (Array.isArray(selectors)) {
+    // Validate all elements are strings
+    const invalid = selectors.filter(s => typeof s !== "string");
+    if (invalid.length > 0) {
+      throw new Error(`waitForAnySelector: all selectors must be strings, got: ${invalid.map(s => typeof s).join(", ")}`);
+    }
+  } else if (typeof selectors === "object") {
+    // Handle case where object was passed by mistake
+    throw new Error(`waitForAnySelector: selectors is an object, not string/array. Did you pass selectors.row instead of selectors?`);
+  } else {
+    throw new Error(`waitForAnySelector: selectors must be string or array, got ${typeof selectors}`);
+  }
+  
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
     for (const sel of selectors) {

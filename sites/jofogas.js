@@ -53,7 +53,7 @@ const scrapeJofogas = async (page, query) => {
     await page.goto(url, { waitUntil: "domcontentloaded" });
 
     try {
-      await waitForAnySelector(page, [selectors.dataScript], 15000);
+      await waitForAnySelector(page, selectors.dataScript, 15000);
     } catch (err) {
       console.warn(`[${site}] No results found on page ${currentPage}: ${err.message}`);
       if (currentPage === 1) {

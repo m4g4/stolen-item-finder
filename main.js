@@ -31,8 +31,8 @@ async function run() {
     const runQueries = async (siteKey, queries, scrapeFn) => {
       for (const query of queries) {
         try {
-          const result = await scrapeFn(query);
-          if (result && result.error) {
+          const result = await scrapeFn(query) || {};
+          if (result.error) {
             scrapeErrors.push({
               site: siteKey,
               query,
