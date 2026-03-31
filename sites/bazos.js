@@ -48,14 +48,22 @@ const scrapeBazos = async (page, countryDomain, query) => {
       site
     })));
 
-    const nextPageEl = await page.$(selectors.nextPage.join(","));
-    if (nextPageEl) {
-      const nextHref = await page.evaluate(el => el.href, nextPageEl);
-      if (nextHref && nextHref.includes("bazos.")) {
-        baseUrl = nextHref;
-      } else {
-        hasNextPage = false;
+    const nextPageLinks = await page.$$(selectors.nextPage.join(","));
+    
+    let hasNextPageLink = false;
+    let nextUrl = null;
+    
+    for (const link of nextPageLinks) {
+      const text = await page.evaluate(el => el.textContent.trim().toLowerCase(), link);
+      if (text.includes("další") || text.includes("ďalšia")) {
+        hasNextPageLink = true;
+        nextUrl = await page.evaluate(el => el.href, link);
+        break;
       }
+    }
+    
+    if (hasNextPageLink && nextUrl && nextUrl.includes("bazos.")) {
+      baseUrl = nextUrl;
     } else {
       hasNextPage = false;
     }
