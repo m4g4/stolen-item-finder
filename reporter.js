@@ -3,7 +3,7 @@ const path = require("path");
 
 const REPORT_DIR = "./report";
 
-function generateHtmlReport(listings, outputPath) {
+function generateHtmlReport(listings, outputPath, errors = []) {
   if (!fs.existsSync(REPORT_DIR)) {
     fs.mkdirSync(REPORT_DIR, { recursive: true });
   }
@@ -26,6 +26,32 @@ function generateHtmlReport(listings, outputPath) {
     </div>
   `).join("\n");
 
+  const errorsHtml = errors.length > 0 ? `
+    <div class="errors">
+      <h2>⚠️ Scrape Errors</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Site</th>
+            <th>Query</th>
+            <th>Error</th>
+            <th>Time</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${errors.map(e => `
+            <tr>
+              <td>${e.site}</td>
+              <td>${e.query}</td>
+              <td>${e.error}</td>
+              <td>${new Date(e.timestamp).toLocaleString()}</td>
+            </tr>
+          `).join("\n")}
+        </tbody>
+      </table>
+    </div>
+  ` : "";
+
   const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -34,6 +60,7 @@ function generateHtmlReport(listings, outputPath) {
   <style>
     body { font-family: Arial, sans-serif; margin: 20px; background: #f5f5f5; }
     h1 { color: #333; }
+    h2 { color: #333; margin-top: 30px; }
     .item { 
       background: white; 
       border-radius: 8px; 
@@ -59,12 +86,17 @@ function generateHtmlReport(listings, outputPath) {
     .date { color: #e76f51; font-size: 0.9em; margin: 3px 0; font-weight: 500; }
     .query { color: #888; font-size: 0.8em; margin: 3px 0; }
     .count { color: #666; margin-bottom: 20px; }
+    .errors table { width: 100%; border-collapse: collapse; background: white; }
+    .errors th, .errors td { padding: 10px; border: 1px solid #ddd; text-align: left; }
+    .errors th { background: #f8d7da; }
+    .errors td { font-size: 0.9em; }
   </style>
 </head>
 <body>
   <h1>🚲 Stolen Bike Search Results</h1>
   <p class="count">Found ${listings.length} listings</p>
   ${itemsHtml}
+  ${errorsHtml}
 </body>
 </html>`;
 

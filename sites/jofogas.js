@@ -56,6 +56,9 @@ const scrapeJofogas = async (page, query) => {
       await waitForAnySelector(page, [selectors.dataScript], 15000);
     } catch (err) {
       console.warn(`[${site}] No results found on page ${currentPage}: ${err.message}`);
+      if (currentPage === 1) {
+        return { listings: [], error: `No results found: ${err.message}` };
+      }
       break;
     }
 
@@ -72,7 +75,7 @@ const scrapeJofogas = async (page, query) => {
 
   console.log(`[${site}] Total results: ${allResults.length}`);
 
-  return allResults;
+  return { listings: allResults };
 };
 
 module.exports = { scrapeJofogas };

@@ -11,6 +11,7 @@ const { scrapeOlx } = require("./sites/olx");
 const { scrapeJofogas } = require("./sites/jofogas");
 
 let allNewListings = [];
+let scrapeErrors = [];
 
 async function run() {
   const browser = await puppeteer.launch({
@@ -30,9 +31,24 @@ async function run() {
     const runQueries = async (siteKey, queries, scrapeFn) => {
       for (const query of queries) {
         try {
-          const results = await scrapeFn(query);
-          await handleResults(results, query);
+          const result = await scrapeFn(query);
+          if (result && result.error) {
+            scrapeErrors.push({
+              site: siteKey,
+              query,
+              error: result.error,
+              timestamp: new Date().toISOString()
+            });
+            console.warn(`[${siteKey}] ${result.error}`);
+          }
+          await handleResults(result.listings || [], query);
         } catch (err) {
+          scrapeErrors.push({
+            site: siteKey,
+            query,
+            error: err.message || String(err),
+            timestamp: new Date().toISOString()
+          });
           console.error(
             `[${siteKey}] Failed for "${query}": ${err.message || err}`
           );
@@ -69,10 +85,7 @@ async function run() {
 
     if (config.htmlReport !== false) {
       ensureReportDir();
-    }
-
-    if (allNewListings.length > 0 && config.htmlReport !== false) {
-      generateHtmlReport(allNewListings, config.htmlReportPath);
+      generateHtmlReport(allNewListings, config.htmlReportPath, scrapeErrors);
     }
 
     if (allNewListings.length > 0 && config.lftp?.enabled) {
@@ -83,7 +96,7 @@ async function run() {
       const reportUrl = config.lftp?.enabled
         ? `https://${config.lftp.host}/snapshot_testing/${config.lftp.path}/index.html`
         : `./report/index.html`;
-      await sendSummaryEmail(allNewListings, reportUrl);
+      await sendSummaryEmail(allNewListings, reportUrl, scrapeErrors);
     }
   } finally {
     await browser.close();
@@ -91,7 +104,9 @@ async function run() {
 }
 
 async function handleResults(results, query) {
-  for (const listing of results) {
+  const listings = Array.isArray(results) ? results : (results?.listings || []);
+  
+  for (const listing of listings) {
     const exists = await db.hasListing(listing.id);
 
     if (!exists) {

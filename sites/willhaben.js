@@ -8,13 +8,13 @@ const scrapeWillhaben = async (page, query) => {
   baseUrl.searchParams.set("keyword", query);
 
   const selectors = {
-    row: '[data-testid="search-result-entry-header"]',
+    row: ['[data-testid^="search-result-entry-header"]', 'a[id^="search-result-entry-header"]'],
     nextPage: ["[data-testid='pagination-top-next-button']"]
   };
 
   const extractResults = async () => {
     return page.evaluate(() => {
-      const rows = document.querySelectorAll('[data-testid="search-result-entry-header"]');
+      const rows = document.querySelectorAll('a[id^="search-result-entry-header"]');
       return Array.from(rows).map(row => {
         const titleEl = row.querySelector("h3");
         const title = titleEl ? titleEl.textContent.trim() : "";
@@ -48,6 +48,9 @@ const scrapeWillhaben = async (page, query) => {
       await waitForAnySelector(page, [selectors.row], 15000);
     } catch (err) {
       console.warn(`[${site}] No results found on page ${currentPage}: ${err.message}`);
+      if (currentPage === 1) {
+        return { listings: [], error: `No results found: ${err.message}` };
+      }
       break;
     }
 
@@ -64,7 +67,7 @@ const scrapeWillhaben = async (page, query) => {
 
   console.log(`[${site}] Total results: ${allResults.length}`);
 
-  return allResults;
+  return { listings: allResults };
 };
 
 module.exports = { scrapeWillhaben };

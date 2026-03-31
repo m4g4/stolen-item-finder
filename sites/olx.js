@@ -41,6 +41,9 @@ const scrapeOlx = async (page, countryDomain, query) => {
       await scrollToLoadImages(page);
     } catch (err) {
       console.warn(`[${site}] No results found on page ${currentPage}: ${err.message}`);
+      if (currentPage === 1) {
+        return { listings: [], error: `No results found: ${err.message}` };
+      }
       break;
     }
 
@@ -57,7 +60,7 @@ const scrapeOlx = async (page, countryDomain, query) => {
 
   console.log(`[${site}] Total results: ${allResults.length}`);
 
-  return allResults;
+  return { listings: allResults };
 };
 
 module.exports = { scrapeOlx };
