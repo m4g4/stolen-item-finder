@@ -2,9 +2,28 @@ const { waitForAnySelector, extractListings } = require("./scrapeUtils");
 
 const scrollToLoadImages = async (page) => {
   await page.evaluate(() => {
-    window.scrollTo(0, document.body.scrollHeight);
+    window.scrollTo(0, 0);
   });
-  await new Promise(r => setTimeout(r, 1000));
+  await new Promise(r => setTimeout(r, 500));
+
+  let previousHeight = 0;
+  let currentHeight = await page.evaluate(() => document.body.scrollHeight);
+  
+  while (previousHeight < currentHeight) {
+    previousHeight = currentHeight;
+    
+    await page.evaluate(() => {
+      window.scrollBy(0, window.innerHeight);
+    });
+    
+    await new Promise(r => setTimeout(r, 1500));
+    
+    currentHeight = await page.evaluate(() => document.body.scrollHeight);
+  }
+  
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
 };
 
 const scrapeOlx = async (page, countryDomain, query) => {
