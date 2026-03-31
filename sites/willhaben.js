@@ -1,4 +1,4 @@
-const { waitForAnySelector } = require("./scrapeUtils");
+const { waitForAnySelector, scrollToLoadImages, handleCookiePopup } = require("./scrapeUtils");
 
 const scrapeWillhaben = async (page, query) => {
   const site = "willhaben.at";
@@ -43,9 +43,11 @@ const scrapeWillhaben = async (page, query) => {
     console.log(`[${site}] Scraping page ${currentPage}: ${url}`);
 
     await page.goto(url, { waitUntil: "networkidle2" });
+    await handleCookiePopup(page);
 
     try {
       await waitForAnySelector(page, selectors.row, 15000);
+      await scrollToLoadImages(page);
     } catch (err) {
       const pageResults = await extractResults();
       console.log(`[${site}] Selector timeout but found ${pageResults.length} elements on page ${currentPage}`);

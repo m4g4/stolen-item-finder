@@ -2,6 +2,8 @@ report
 .DS_Store
 *.db
 
+config.js
+
 # Logs
 logs
 *.log

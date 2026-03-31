@@ -1,4 +1,4 @@
-const { waitForAnySelector, extractListings } = require("./scrapeUtils");
+const { waitForAnySelector, extractListings, handleCookiePopup } = require("./scrapeUtils");
 
 const scrapeBazos = async (page, countryDomain, query) => {
   const site = `bazos.${countryDomain}`;
@@ -34,6 +34,7 @@ const scrapeBazos = async (page, countryDomain, query) => {
     console.log(`[${site}] Scraping page ${currentPage}: ${baseUrl}`);
 
     await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+    await handleCookiePopup(page);
 
     try {
       await waitForAnySelector(page, selectors.row, 15000);

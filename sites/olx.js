@@ -1,30 +1,4 @@
-const { waitForAnySelector, extractListings } = require("./scrapeUtils");
-
-const scrollToLoadImages = async (page) => {
-  await page.evaluate(() => {
-    window.scrollTo(0, 0);
-  });
-  await new Promise(r => setTimeout(r, 500));
-
-  let previousHeight = 0;
-  let currentHeight = await page.evaluate(() => document.body.scrollHeight);
-  
-  while (previousHeight < currentHeight) {
-    previousHeight = currentHeight;
-    
-    await page.evaluate(() => {
-      window.scrollBy(0, window.innerHeight);
-    });
-    
-    await new Promise(r => setTimeout(r, 1500));
-    
-    currentHeight = await page.evaluate(() => document.body.scrollHeight);
-  }
-  
-  await page.evaluate(() => {
-    window.scrollTo(0, 0);
-  });
-};
+const { waitForAnySelector, extractListings, scrollToLoadImages, handleCookiePopup } = require("./scrapeUtils");
 
 const scrapeOlx = async (page, countryDomain, query) => {
   const site = `olx.${countryDomain}`;
@@ -42,7 +16,7 @@ const scrapeOlx = async (page, countryDomain, query) => {
     price: ["p[data-testid='ad-price']", "[data-testid='ad-price']"],
     image: ["[data-testid='l-card'] > div > div[type='list'] > div[type='list'] > a img"],
     date: ["p[data-testid='location-date']"],
-    nextPage: ["[data-testid='pagination-next']", "a[aria-label='Next page']", "a[rel='next']"]
+    nextPage: ["[data-testid='pagination-forward']", "a[aria-label='Next page']", "a[rel='next']"]
   };
 
   const allResults = [];
@@ -54,6 +28,7 @@ const scrapeOlx = async (page, countryDomain, query) => {
     console.log(`[${site}] Scraping page ${currentPage}: ${url}`);
     
     await page.goto(url, { waitUntil: "domcontentloaded" });
+    await handleCookiePopup(page);
 
     try {
       await waitForAnySelector(page, selectors.row, 15000);
@@ -78,6 +53,8 @@ const scrapeOlx = async (page, countryDomain, query) => {
   }
 
   console.log(`[${site}] Total results: ${allResults.length}`);
+
+  await new Promise(r => setTimeout(r, 150000));
 
   return { listings: allResults };
 };

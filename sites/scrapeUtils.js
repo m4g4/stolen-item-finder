@@ -108,7 +108,74 @@ async function extractListings(page, selectors) {
   }, selectors);
 }
 
+const scrollToLoadImages = async (page) => {
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
+  await new Promise(r => setTimeout(r, 500));
+
+  let scrollTop = 0;
+  let scrollHeight = await page.evaluate(() => document.body.scrollHeight);
+  let windowHeight = await page.evaluate(() => window.innerHeight);
+  
+  while (scrollTop + windowHeight < scrollHeight) {
+    await page.evaluate(() => {
+      window.scrollBy(0, window.innerHeight);
+    });
+    
+    await new Promise(r => setTimeout(r, 1500));
+    
+    scrollHeight = await page.evaluate(() => document.body.scrollHeight);
+    scrollTop = await page.evaluate(() => window.scrollY);
+  }
+  
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
+};
+
+async function handleCookiePopup(page) {
+  const didomiSelector = ".didomi-popup-view";
+  const didomiButton = "#didomi-notice-agree-button";
+  const onetrustSelector = "#onetrust-banner-sdk";
+  const onetrustAccept = "#onetrust-accept-btn-handler";
+  const onetrustReject = "#onetrust-reject-all-handler";
+  
+  try {
+    await page.waitForSelector(didomiSelector, { timeout: 3000 });
+    const acceptBtn = await page.$(didomiButton);
+    if (acceptBtn) {
+      await acceptBtn.click();
+      await new Promise(r => setTimeout(r, 500));
+      console.log("[Cookie] Accepted Didomi cookies");
+    }
+  } catch {
+    // No Didomi popup, try OneTrust
+  }
+  
+  try {
+    await page.waitForSelector(onetrustSelector, { timeout: 3000 });
+    const rejectBtn = await page.$(onetrustReject);
+    if (rejectBtn) {
+      await rejectBtn.click();
+      await new Promise(r => setTimeout(r, 500));
+      console.log("[Cookie] Rejected optional OneTrust cookies");
+    } else {
+      const acceptBtn = await page.$(onetrustAccept);
+      if (acceptBtn) {
+        await acceptBtn.click();
+        await new Promise(r => setTimeout(r, 500));
+        console.log("[Cookie] Accepted OneTrust cookies");
+      }
+    }
+  } catch {
+    // No popup, ignore
+  }
+}
+
 module.exports = {
   waitForAnySelector,
-  extractListings
+  extractListings,
+  scrollToLoadImages,
+  handleCookiePopup
 };
