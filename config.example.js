@@ -40,6 +40,9 @@ module.exports = {
     ],
     olx_pl: [
       "Ghost Kato"
+    ],
+    mtbiker_sk: [
+      "Ghost Kato"
     ]
   },
 
@@ -49,6 +52,7 @@ module.exports = {
     willhaben_at: true,
     olx_sk: false,
     olx_pl: true,
-    jofogas_hu: true
+    jofogas_hu: true,
+    mtbiker_sk: false
   }
 };

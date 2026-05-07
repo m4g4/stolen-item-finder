@@ -9,6 +9,7 @@ const { scrapeBazos } = require("./sites/bazos");
 const { scrapeWillhaben } = require("./sites/willhaben");
 const { scrapeOlx } = require("./sites/olx");
 const { scrapeJofogas } = require("./sites/jofogas");
+const { scrapeMtbiker } = require("./sites/mtbiker");
 
 let allNewListings = [];
 let scrapeErrors = [];
@@ -68,7 +69,9 @@ async function run() {
       olx_pl: (queries) =>
         runQueries("olx_pl", queries, (q) => scrapeOlx(page, "pl", q)),
       jofogas_hu: (queries) =>
-        runQueries("jofogas_hu", queries, (q) => scrapeJofogas(page, q))
+        runQueries("jofogas_hu", queries, (q) => scrapeJofogas(page, q)),
+      mtbiker_sk: (queries) =>
+        runQueries("mtbiker_sk", queries, (q) => scrapeMtbiker(page, q))
     };
 
     for (const [siteKey, enabled] of Object.entries(config.sites)) {
