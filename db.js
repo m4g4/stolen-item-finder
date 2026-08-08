@@ -37,7 +37,17 @@ function saveListing(listing) {
   });
 }
 
+function getAllListings() {
+  return new Promise((resolve, reject) => {
+    db.all("SELECT * FROM listings ORDER BY created_at DESC", (err, rows) => {
+      if (err) return reject(err);
+      resolve(rows || []);
+    });
+  });
+}
+
 module.exports = {
   hasListing,
-  saveListing
+  saveListing,
+  getAllListings
 };

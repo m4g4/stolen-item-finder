@@ -88,7 +88,7 @@ async function run() {
 
     if (config.htmlReport !== false) {
       ensureReportDir();
-      generateHtmlReport(allNewListings, config.htmlReportPath, scrapeErrors);
+      await generateHtmlReport(allNewListings, config.htmlReportPath, scrapeErrors);
     }
 
     if (allNewListings.length > 0 && config.lftp?.enabled) {

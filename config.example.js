@@ -14,6 +14,8 @@ module.exports = {
 
   htmlReport: true,
   htmlReportPath: "./report/",
+  htmlReportKeepDays: 30,
+  htmlReportWindowSize: 100,
 
   searchTerms: {
     willhaben_at: [
